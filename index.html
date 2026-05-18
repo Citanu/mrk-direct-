@@ -1,0 +1,631 @@
+import React, { useState } from 'react';
+import { 
+  FileText, 
+  Mail, 
+  Map, 
+  ClipboardList, 
+} from 'lucide-react';
+
+// Brand Colors
+const colors = {
+  terracotta: '#C4673A',
+  gold: '#B8860B',
+  cream: '#FAF6F0',
+  dark: '#1C1C1C',
+  medium: '#5C4A3A',
+  lightTan: '#E8D8C4',
+  deepGreen: '#2C4A3E',
+  sage: '#7A9B7A',
+  dustyRose: '#C4956A',
+};
+
+// --- Reusable Graphic Components ---
+
+const WatercolorBlob = ({ color, top, left, right, bottom, width = '8rem', height = '8rem', opacity = 0.15 }) => (
+  <div 
+    className="absolute rounded-full blur-[40px] pointer-events-none"
+    style={{
+      backgroundColor: color,
+      top, left, right, bottom,
+      width, height,
+      opacity,
+      transform: 'translate(-50%, -50%)',
+    }}
+  />
+);
+
+const StampLogo = ({ size = '6rem', color = colors.terracotta }) => (
+  <div 
+    className="relative flex items-center justify-center rounded-full bg-white shadow-sm"
+    style={{ width: size, height: size, border: `2px solid ${color}`, color }}
+  >
+    <div className="absolute rounded-full" style={{ width: '85%', height: '85%', border: `1px solid ${color}` }}></div>
+    <div className="text-center flex flex-col items-center justify-center z-10">
+      <div className="font-serif font-bold tracking-widest" style={{ fontSize: `calc(${size} * 0.2)` }}>WORLD</div>
+      <div className="font-serif leading-none" style={{ fontSize: `calc(${size} * 0.15)` }}>BOX</div>
+      <div className="font-sans italic mt-1" style={{ fontSize: `calc(${size} * 0.08)` }}>EST. 2024</div>
+    </div>
+  </div>
+);
+
+const DoubleBorder = ({ children }) => (
+  <div className="absolute inset-2 border" style={{ borderColor: colors.lightTan }}>
+    <div className="absolute inset-1 border" style={{ borderColor: colors.lightTan }}></div>
+    {children}
+  </div>
+);
+
+// Cutia ilustrată cu produse (pentru Flyer)
+const SnackBoxIllustration = () => (
+  <div className="relative w-40 h-32 mx-auto my-4 drop-shadow-md hover:scale-105 transition-transform">
+    {/* Spatele cutiei */}
+    <div className="absolute bottom-0 left-2 right-2 h-16 bg-[#c5a083] rounded-t-sm border border-[#a88267]"></div>
+    
+    {/* Snack 1 (Bags) */}
+    <div className="absolute bottom-12 left-4 w-12 h-16 bg-red-500 rounded-md rotate-[-15deg] border border-red-700 shadow-sm flex flex-col items-center justify-center overflow-hidden">
+       <div className="w-full h-3 bg-yellow-400 absolute top-0"></div>
+       <span className="text-[8px] font-bold text-white mt-2">SPICY</span>
+       <div className="w-6 h-6 rounded-full bg-red-400/50 mt-1"></div>
+    </div>
+    
+    {/* Snack 2 (Pocky/Sticks) */}
+    <div className="absolute bottom-8 right-3 w-8 h-20 bg-green-600 rounded-sm rotate-[20deg] border border-green-800 shadow-sm flex flex-col items-center pt-2">
+       <span className="text-[7px] font-bold text-white tracking-widest writing-vertical-rl">MATCHA</span>
+       <div className="w-4 h-10 bg-[#e5e5e5] mt-auto border-t border-gray-300 flex justify-around px-0.5 pt-1">
+         <div className="w-0.5 h-full bg-[#8B4513]"></div>
+         <div className="w-0.5 h-full bg-[#8B4513]"></div>
+       </div>
+    </div>
+
+    {/* Snack 3 (Chips/Large Bag) */}
+    <div className="absolute bottom-10 left-12 w-16 h-20 bg-blue-500 rounded-lg rotate-[5deg] border border-blue-700 shadow-md flex flex-col items-center justify-center overflow-hidden">
+       <div className="text-[10px] font-black text-yellow-300 drop-shadow-sm">SNACK</div>
+       <div className="text-[7px] text-white">PREMIUM</div>
+       <div className="flex gap-1 mt-1">
+         <div className="w-3 h-3 rounded-full bg-orange-400"></div>
+         <div className="w-3 h-3 rounded-full bg-orange-400"></div>
+       </div>
+    </div>
+    
+    {/* Snack 4 (Candy) */}
+    <div className="absolute bottom-7 left-8 w-10 h-10 bg-purple-500 rounded-full rotate-[-10deg] border border-purple-700 shadow-sm flex items-center justify-center">
+      <span className="text-[14px]">🍬</span>
+    </div>
+
+    {/* Fața cutiei (Clapeta) */}
+    <div className="absolute bottom-0 left-0 right-0 h-12 bg-[#D2B48C] rounded-sm border border-[#B08D6A] shadow-lg flex flex-col items-center justify-center z-10">
+       <div className="font-serif font-bold text-[#5c4a3a] text-xs tracking-widest opacity-80 border-b border-[#5c4a3a]">WORLD BOX</div>
+       <div className="flex gap-1 mt-1 opacity-60">
+         <div className="w-1 h-3 border-l border-r border-[#5c4a3a]"></div>
+         <div className="w-1 h-3 border-l border-[#5c4a3a]"></div>
+       </div>
+    </div>
+  </div>
+);
+
+// --- Print Material Previews ---
+
+const LetterA4 = () => (
+  <div className="relative w-full bg-[#FAF6F0] shadow-2xl overflow-hidden" style={{ aspectRatio: '210/297' }}>
+    {/* Background Blobs */}
+    <WatercolorBlob color={colors.terracotta} top="15%" left="85%" width="12rem" height="12rem" />
+    <WatercolorBlob color={colors.gold} top="5%" left="90%" width="8rem" height="8rem" />
+    <WatercolorBlob color={colors.sage} top="85%" left="15%" width="10rem" height="10rem" />
+    <WatercolorBlob color={colors.dustyRose} top="90%" left="85%" width="12rem" height="12rem" />
+
+    {/* Content Container */}
+    <div className="absolute inset-0 p-8 sm:p-12 flex flex-col">
+      {/* Header */}
+      <div className="flex justify-between items-start border-b pb-6" style={{ borderColor: colors.lightTan }}>
+        <div className="flex items-center gap-4">
+          <StampLogo size="5rem" />
+          <div>
+            <h1 className="font-serif font-bold text-3xl" style={{ color: colors.terracotta }}>WorldBox</h1>
+            <p className="font-serif italic text-sm mt-1" style={{ color: colors.medium }}>"Descoperă lumea, o cutie pe lună!"</p>
+          </div>
+        </div>
+        <div className="text-right font-sans text-xs flex flex-col gap-1" style={{ color: colors.medium }}>
+          <p>hello@worldbox.ro</p>
+          <p>+40 745 000 123</p>
+          <p>www.worldbox.ro</p>
+          <p className="font-bold mt-1" style={{ color: colors.terracotta }}>Instagram: @worldbox.ro</p>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 mt-10 font-serif text-[11px] sm:text-sm leading-relaxed" style={{ color: colors.dark }}>
+        {/* Actualizat: Eliminat 'Stimata' */}
+        <p className="font-serif italic text-base mb-6">Bună ziua, Doamnă Teodorescu Iulia,</p>
+        
+        <div className="space-y-4 text-justify">
+          <p>Suntem încântați să vă prezentăm WorldBox — serviciul lunar de abonament care vă poartă în jurul lumii fără să părăsiți confortul casei. În fiecare lună, curatăm cu grijă o cutie tematică plină de produse autentice dintr-o țară selectată special pentru abonații noștri.</p>
+          <p>Fiecare cutie WorldBox conține produse alimentare artizanale, gustări tradiționale, condimente rare și surprize culinare pe care nu le veți găsi în supermarketurile obișnuite. Însoțim fiecare produs cu o carte poștală ilustrată și un mic ghid despre țara lunii — pentru că o experiență completă înseamnă și cunoaștere, nu doar savoare.</p>
+          <p>Valorile noastre sunt simple: autenticitate, descoperire și bucuria de a împărtăși. Lucrăm direct cu producători locali din fiecare țară, asigurând că fiecare produs reflectă cu adevărat cultura și tradiția sa de origine. Abonații noștri ne spun că deschiderea cutiei lunare a devenit ritualul lor preferat.</p>
+          <p>Descoperiți cutiile WorldBox și transformați fiecare lună într-o aventură culinară. Pentru comenzi de peste 150 lei, beneficiați de livrare gratuită și o gustare bonus surpriză. Plasați comanda dvs. trimițând talonul de comandă la adresa: București, Sector 2, Str. Călărași Nr. 45. Oferta este valabilă până la data de 15.07.2026.</p>
+          <p>Pentru mai multe informații sau comenzi, ne puteți contacta la adresa de mail hello@worldbox.ro sau pe site-ul www.worldbox.ro.</p>
+        </div>
+
+        <div className="mt-8">
+          <p className="italic mb-4" style={{ color: colors.medium }}>Vă urăm o lună plină de descoperiri gustoase și momente speciale!</p>
+          <p>Cu drag,</p>
+          {/* Actualizat: Nume si Functie modificate */}
+          <p className="mt-2 font-bold">Chițu Andrei</p>
+          <p className="font-sans font-bold text-xs" style={{ color: colors.terracotta }}>Marketing Manager, WorldBox</p>
+        </div>
+
+        <div className="mt-12 pt-4 border-t border-dashed" style={{ borderColor: colors.lightTan }}>
+          <p className="font-serif italic text-xs" style={{ color: colors.medium }}>
+            P.S. La orice cutie comandată, beneficiezi de -15% la a doua cutie comandată în aceeași lună, pentru că explorarea e mai frumoasă împărțită!
+          </p>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-8 pt-4 border-t text-center font-sans text-[9px] sm:text-xs" style={{ borderColor: colors.lightTan, color: colors.medium }}>
+        WorldBox SRL  •  București, Sector 2, Str. Călărași Nr. 45  •  www.worldbox.ro  •  hello@worldbox.ro
+      </div>
+    </div>
+  </div>
+);
+
+const EnvelopeDL = () => (
+  <div className="relative w-full bg-[#FAF6F0] shadow-2xl overflow-hidden" style={{ aspectRatio: '220/110' }}>
+    <WatercolorBlob color={colors.terracotta} top="80%" left="85%" width="10rem" height="10rem" opacity={0.15}/>
+    <WatercolorBlob color={colors.gold} top="20%" left="90%" width="8rem" height="8rem" />
+    <WatercolorBlob color={colors.sage} top="15%" left="20%" width="8rem" height="8rem" />
+    <DoubleBorder />
+    
+    <div className="absolute inset-6">
+      {/* Expeditor */}
+      <div className="absolute top-0 left-0 flex gap-4 items-start">
+        <div>
+          <p className="font-serif font-bold text-[10px]" style={{ color: colors.terracotta }}>Expeditor:</p>
+          <p className="font-sans font-bold text-xs" style={{ color: colors.dark }}>WorldBox SRL</p>
+          <p className="font-sans text-[10px]" style={{ color: colors.dark }}>Str. Călărași Nr. 45, Sector 2</p>
+          <p className="font-sans text-[10px]" style={{ color: colors.dark }}>București, România</p>
+        </div>
+        <StampLogo size="3rem" />
+      </div>
+
+      {/* TP Stamp */}
+      <div className="absolute top-0 right-0 border-2 w-12 h-12 flex items-center justify-center" style={{ borderColor: colors.terracotta }}>
+        <span className="font-sans font-bold text-lg" style={{ color: colors.terracotta }}>TP</span>
+      </div>
+
+      {/* Center Tagline */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <p className="font-serif italic text-sm mt-8" style={{ color: colors.terracotta }}>"Descoperă lumea, o cutie pe lună!"</p>
+      </div>
+
+      {/* Destinatar */}
+      <div className="absolute bottom-4 right-12">
+        <p className="font-serif font-bold text-[10px]" style={{ color: colors.terracotta }}>Destinatar:</p>
+        <p className="font-sans font-bold text-sm" style={{ color: colors.dark }}>Teodorescu Iulia</p>
+        <p className="font-sans text-xs mt-1" style={{ color: colors.dark }}>Adresă: _________________________</p>
+      </div>
+    </div>
+  </div>
+);
+
+const FlyerTrifold = ({ side }) => (
+  <div className="relative w-full bg-[#FAF6F0] shadow-2xl overflow-hidden transition-all duration-500" style={{ aspectRatio: '297/210' }}>
+    {/* Grid lines simulating folds */}
+    <div className="absolute inset-0 grid grid-cols-3 divide-x border-x-0" style={{ borderColor: `${colors.lightTan}80`, borderStyle: 'dashed' }}>
+      
+      {/* ---------------- STÂNGA ---------------- */}
+      <div className="relative p-5 flex flex-col h-full">
+        {side === 'exterior' ? (
+          // Exterior Left (Inside Flap)
+          <>
+            <WatercolorBlob color={colors.gold} top="20%" left="50%" width="12rem" height="12rem" />
+            <div className="text-center mt-12 z-10">
+              <h3 className="font-serif font-bold text-base" style={{ color: colors.terracotta }}>CINE SUNTEM?</h3>
+              <div className="h-px w-24 mx-auto my-3" style={{ backgroundColor: colors.terracotta }}></div>
+              <p className="font-serif text-[10px] text-justify" style={{ color: colors.dark }}>
+                WorldBox aduce autenticul lumii la ușa ta. În fiecare lună curatăm cu pasiune produse artizanale și delicii gastronomice din țări diferite.
+              </p>
+              
+              <div className="mt-8 space-y-4 text-left">
+                <div>
+                  <h4 className="font-sans font-bold text-[11px]" style={{ color: colors.terracotta }}>Handmade & Artizanal</h4>
+                  <p className="font-sans text-[9px]" style={{ color: colors.dark }}>Selectăm doar produse autentice.</p>
+                </div>
+                <div>
+                  <h4 className="font-sans font-bold text-[11px]" style={{ color: colors.terracotta }}>Experiențe Unice</h4>
+                  <p className="font-sans text-[9px]" style={{ color: colors.dark }}>Fiecare cutie vine cu un ghid cultural.</p>
+                </div>
+                <div>
+                  <h4 className="font-sans font-bold text-[11px]" style={{ color: colors.terracotta }}>Reutilizabil</h4>
+                  <p className="font-sans text-[9px]" style={{ color: colors.dark }}>Cutii frumoase, perfecte pentru păstrat amintiri.</p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-5 w-[calc(100%-2.5rem)] text-center font-sans text-[8px]" style={{ color: colors.medium }}>
+              pentru detalii accesați <br />
+              <span style={{ color: colors.terracotta }}>www.worldbox.ro</span>
+            </div>
+          </>
+        ) : (
+          // Interior Left (Cutiile Noastre - actualizat sa incapa pe inaltime)
+          <>
+            <WatercolorBlob color={colors.dustyRose} top="85%" left="20%" width="16rem" height="16rem" />
+            <div className="text-center mt-4 z-10">
+              <h3 className="font-serif font-bold text-base" style={{ color: colors.terracotta }}>CUTIILE NOASTRE</h3>
+              <div className="h-px w-20 mx-auto my-2" style={{ backgroundColor: colors.terracotta }}></div>
+              
+              <div className="mt-4 space-y-3">
+                {[
+                  { name: 'CUTIE MINI', price: '89 lei', desc: '3-4 produse esențiale din țara lunii, ambalaj elegant, card poștal ilustrat.' },
+                  { name: 'CUTIE CLASSIC', price: '149 lei', desc: '6-7 produse diverse: gustări, condimente, dulciuri și un produs special rar.' },
+                  { name: 'CUTIE LYA', price: '199 lei', desc: '10+ produse premium, ghid cultural, rețetă tradițională, card poștal + accesoriu.' },
+                ].map(box => (
+                  <div key={box.name} className="border p-2.5 text-left bg-white/70 backdrop-blur-sm rounded-sm" style={{ borderColor: colors.lightTan }}>
+                    <div className="flex justify-between items-center mb-0.5">
+                      <h4 className="font-sans font-bold text-[10px]" style={{ color: colors.terracotta }}>{box.name}</h4>
+                      <span className="font-serif font-bold text-[11px]" style={{ color: colors.gold }}>{box.price}</span>
+                    </div>
+                    <p className="font-serif text-[9px] leading-tight" style={{ color: colors.dark }}>{box.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ---------------- MIJLOC ---------------- */}
+      <div className="relative p-5 flex flex-col h-full">
+        {side === 'exterior' ? (
+          // Exterior Middle (Back)
+          <>
+             <WatercolorBlob color={colors.dustyRose} top="10%" left="50%" width="14rem" height="14rem" />
+             <div className="text-center mt-6 z-10">
+              <h3 className="font-serif font-bold text-base" style={{ color: colors.terracotta }}>DE CE WORLDBOX?</h3>
+              <div className="h-px w-24 mx-auto my-3" style={{ backgroundColor: colors.terracotta }}></div>
+              
+              <div className="space-y-4 mt-4">
+                <div className="text-center bg-white/40 p-2 rounded">
+                  <div className="text-[#B8860B] text-xs mb-1">★★★★★</div>
+                  <p className="font-serif italic text-[9px] leading-tight" style={{ color: colors.dark }}>"O experiență incredibilă! Cutia din Italia a fost o revelație — produse pe care nu le găsești nicăieri!"</p>
+                  <p className="font-sans font-bold text-[8px] mt-1" style={{ color: colors.terracotta }}>— Alexandra M.</p>
+                </div>
+                <div className="text-center bg-white/40 p-2 rounded">
+                  <div className="text-[#B8860B] text-xs mb-1">★★★★★</div>
+                  <p className="font-serif italic text-[9px] leading-tight" style={{ color: colors.dark }}>"Am descoperit condimente din Japonia pe care acum le folosesc zilnic. Mulțumesc WorldBox!"</p>
+                  <p className="font-sans font-bold text-[8px] mt-1" style={{ color: colors.terracotta }}>— Radu P.</p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <div className="border border-dashed p-1.5" style={{ borderColor: colors.terracotta }}>
+                  <h4 className="font-sans font-bold text-[9px] mb-0.5" style={{ color: colors.terracotta }}>LIVRARE GRATUITĂ</h4>
+                  <p className="font-sans text-[7px]" style={{ color: colors.medium }}>Pentru abonamentele pe minim 3 luni.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="absolute bottom-5 w-[calc(100%-2.5rem)] text-center font-sans text-[8px] space-y-1 border-t pt-2" style={{ color: colors.medium, borderColor: colors.lightTan }}>
+              <p>hello@worldbox.ro · +40 745 000 123</p>
+              <p style={{ color: colors.terracotta }}>www.worldbox.ro</p>
+            </div>
+          </>
+        ) : (
+          // Interior Middle (Actualizat vizual cu Cutia de snacks-uri)
+          <>
+            <WatercolorBlob color={colors.sage} top="15%" left="50%" width="16rem" height="16rem" />
+            <div className="text-center mt-2 z-10 flex flex-col h-full">
+              <h3 className="font-serif font-bold text-[13px] leading-tight" style={{ color: colors.terracotta }}>UN ALT FEL DE ABONAMENT</h3>
+              <h2 className="font-serif font-bold text-[15px] leading-none my-1" style={{ color: colors.deepGreen }}>PENTRU GURMANZI</h2>
+              
+              {/* Ilustrația Cutiei */}
+              <div className="mt-2 mb-2 flex-1 flex items-center justify-center">
+                <SnackBoxIllustration />
+              </div>
+
+              {/* Produsele / Tarile */}
+              <div className="space-y-1.5 pb-2">
+                <div className="border-l-2 pl-2 text-left bg-white/30 backdrop-blur-sm py-1" style={{ borderColor: colors.terracotta }}>
+                   <h4 className="font-sans font-bold text-[9px] flex gap-1 items-center" style={{ color: colors.terracotta }}><span className="text-[12px]">🇯🇵</span> JAPONIA</h4>
+                   <p className="font-serif text-[8px] leading-tight" style={{ color: colors.medium }}>Ramen instant, matcha, dulciuri Pocky</p>
+                </div>
+                <div className="border-l-2 pl-2 text-left bg-white/30 backdrop-blur-sm py-1" style={{ borderColor: colors.gold }}>
+                   <h4 className="font-sans font-bold text-[9px] flex gap-1 items-center" style={{ color: colors.gold }}><span className="text-[12px]">🇮🇹</span> ITALIA</h4>
+                   <p className="font-serif text-[8px] leading-tight" style={{ color: colors.medium }}>Paste artizanale, ulei de trufe, amaretti</p>
+                </div>
+                <div className="border-l-2 pl-2 text-left bg-white/30 backdrop-blur-sm py-1" style={{ borderColor: colors.deepGreen }}>
+                   <h4 className="font-sans font-bold text-[9px] flex gap-1 items-center" style={{ color: colors.deepGreen }}><span className="text-[12px]">🇲🇦</span> MAROC</h4>
+                   <p className="font-serif text-[8px] leading-tight" style={{ color: colors.medium }}>Ras el hanout, ceai de mentă, couscous</p>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ---------------- DREAPTA ---------------- */}
+      <div className="relative p-5 flex flex-col h-full items-center justify-center">
+        {side === 'exterior' ? (
+          // Exterior Right (Front Cover)
+          <>
+             <WatercolorBlob color={colors.terracotta} top="85%" left="70%" width="12rem" height="12rem" />
+             <WatercolorBlob color={colors.sage} top="10%" left="15%" width="10rem" height="10rem" />
+             
+             <div className="text-center z-10 flex flex-col items-center">
+                <h1 className="font-serif font-bold text-[40px] leading-none" style={{ color: colors.dark }}>WORLD</h1>
+                <h2 className="font-serif text-[32px] leading-none mt-1" style={{ color: colors.terracotta }}>BOX</h2>
+                
+                <p className="font-serif italic text-[13px] mt-6 mb-10" style={{ color: colors.medium }}>
+                  "Descoperă lumea,<br/>o cutie pe lună!"
+                </p>
+
+                <StampLogo size="5.5rem" />
+             </div>
+
+             <div className="absolute bottom-5 w-full text-center space-y-1.5">
+                <p className="font-sans font-bold text-[10px]" style={{ color: colors.terracotta }}>www.worldbox.ro</p>
+                <p className="font-sans text-[8px]" style={{ color: colors.medium }}>Abonament lunar · Livrare la domiciliu</p>
+             </div>
+          </>
+        ) : (
+          // Interior Right
+          <>
+             <WatercolorBlob color={colors.gold} top="50%" left="50%" width="18rem" height="18rem" opacity={0.1}/>
+             <div className="text-center mt-4 w-full z-10">
+              <h3 className="font-serif font-bold text-base leading-tight" style={{ color: colors.deepGreen }}>DĂRUIEȘTE<br/>MAI MULT</h3>
+              <div className="h-px w-20 mx-auto my-2" style={{ backgroundColor: colors.deepGreen }}></div>
+              
+              <div className="mt-6 space-y-3">
+                {[
+                  { title: 'WORLD & SAVE', desc: 'La comenzi peste 150 lei primești livrare gratuită și o gustare bonus surpriză.' },
+                  { title: 'DĂRUIEȘTE MAI MULT', desc: 'La orice cutie comandată, -15% la a doua cutie comandată în aceeași lună, pentru că bucuria e mai frumoasă împărțită.' },
+                  { title: 'GIFTING BOX', desc: 'Oferă un abonament cadou pe 3 luni celor dragi! Include ambalaj special de cadou gratuit.' },
+                ].map(offer => (
+                  <div key={offer.title} className="border p-2.5 text-left bg-white/70 backdrop-blur-sm rounded-sm shadow-sm" style={{ borderColor: colors.lightTan }}>
+                    <h4 className="font-sans font-bold text-[10px] mb-1" style={{ color: colors.terracotta }}>{offer.title}</h4>
+                    <p className="font-serif text-[9px] leading-tight" style={{ color: colors.dark }}>{offer.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 p-2 bg-[#f0e8df] rounded text-center border" style={{ borderColor: colors.lightTan }}>
+                 <p className="font-sans font-bold text-[9px]" style={{ color: colors.dark }}>Abonează-te acum pe:</p>
+                 <p className="font-serif text-[11px] mt-0.5" style={{ color: colors.terracotta }}>www.worldbox.ro</p>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+// Talon modificat pe LANDSCAPE (Orizontal)
+const OrderFormA5 = ({ side }) => (
+  <div className="relative w-full bg-[#FAF6F0] shadow-2xl overflow-hidden transition-all duration-500" style={{ aspectRatio: '210/148' }}>
+    {side === 'front' ? (
+      <>
+        <WatercolorBlob color={colors.terracotta} top="80%" left="90%" width="12rem" height="12rem" opacity={0.1}/>
+        <WatercolorBlob color={colors.sage} top="20%" left="10%" width="10rem" height="10rem" opacity={0.1}/>
+        
+        <div className="flex flex-col h-full p-6">
+          {/* Header Ribbon Landscape */}
+          <div className="w-[calc(100%+3rem)] -mx-6 -mt-6 py-3 px-6 flex justify-between items-center shadow-sm shrink-0" style={{ backgroundColor: colors.terracotta }}>
+             <div>
+               <h1 className="font-serif font-bold text-lg text-white leading-none">TALON DE COMANDĂ</h1>
+               <p className="font-serif italic text-[10px] text-white/90 mt-0.5">WorldBox • Descoperă lumea, o cutie pe lună!</p>
+             </div>
+             <div className="w-8 h-8 rounded-full border border-white flex flex-col items-center justify-center text-white bg-[#b55c32]">
+               <span className="font-sans font-bold text-[9px] leading-none">WB</span>
+             </div>
+          </div>
+
+          {/* Main Grid (2 Columns for Landscape) */}
+          <div className="flex-1 mt-4 grid grid-cols-2 gap-6">
+            
+            {/* Coloana Stanga - Produse */}
+            <div>
+              <h3 className="font-sans font-bold text-xs mb-3 pb-1 border-b" style={{ color: colors.dark, borderColor: colors.lightTan }}>1. Selectează cutia dorită:</h3>
+              <div className="space-y-3">
+                {[
+                  { name: 'Cutie Mini', price: '89 lei' },
+                  { name: 'Cutie Classic', price: '149 lei' },
+                  { name: 'Cutie Lya Premium', price: '199 lei' },
+                ].map(prod => (
+                  <div key={prod.name} className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border shrink-0 bg-white" style={{ borderColor: colors.dark }}></div>
+                      <span className="font-sans font-bold text-[11px]" style={{ color: colors.dark }}>{prod.name}</span>
+                      <span className="font-serif font-bold text-[11px] ml-auto" style={{ color: colors.terracotta }}>{prod.price}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5 ml-5">
+                      <span className="font-sans text-[9px]" style={{ color: colors.medium }}>Buc: <span className="inline-block w-6 border-b border-gray-400"></span></span>
+                      <span className="font-sans text-[9px]" style={{ color: colors.medium }}>Preț: <span className="inline-block w-8 border-b border-gray-400"></span></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end items-center gap-2 mt-4 pt-2 border-t border-dashed" style={{ borderColor: colors.medium }}>
+                <span className="font-sans font-bold text-xs" style={{ color: colors.dark }}>TOTAL:</span>
+                <div className="w-16 border-b" style={{ borderColor: colors.dark }}></div>
+              </div>
+            </div>
+
+            {/* Coloana Dreapta - Oferte & GDPR */}
+            <div className="flex flex-col">
+              <h3 className="font-sans font-bold text-xs mb-3 pb-1 border-b" style={{ color: colors.terracotta, borderColor: colors.lightTan }}>2. Oferte & Acord:</h3>
+              <div className="space-y-3 flex-1">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 border mt-0.5 shrink-0 bg-white" style={{ borderColor: colors.dark }}></div>
+                  <p className="font-sans text-[10px] leading-tight" style={{ color: colors.dark }}>Doresc oferta <b>"World & Save"</b><br/><span className="text-[8px]" style={{ color: colors.medium }}>({'>'}150 lei = livrare gratuită + cadou)</span></p>
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 border mt-0.5 shrink-0 bg-white" style={{ borderColor: colors.dark }}></div>
+                  <p className="font-sans text-[10px] leading-tight" style={{ color: colors.dark }}>Doresc oferta <b>"Dăruiește Mai Mult"</b><br/><span className="text-[8px]" style={{ color: colors.medium }}>(-15% la a doua cutie în aceeași lună)</span></p>
+                </div>
+                <div className="flex gap-2 mt-auto pt-3">
+                  <div className="w-3 h-3 border mt-0.5 shrink-0 bg-white" style={{ borderColor: colors.dark }}></div>
+                  <p className="font-sans text-[10px] leading-tight" style={{ color: colors.dark }}>Sunt de acord cu Prelucrarea Datelor cu Caracter Personal pentru onorarea comenzii.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Adrese Footer - Compactate pt Landscape */}
+          <div className="mt-4 pt-3 border-t border-dashed flex gap-4 shrink-0 relative" style={{ borderColor: colors.medium }}>
+            <span className="absolute -top-2 left-4 bg-[#FAF6F0] px-2 font-sans text-[8px]" style={{ color: colors.medium }}>✂ Decupați și expediați</span>
+            
+            <div className="flex-1 flex gap-3">
+               <div className="flex-1 border p-2 bg-white/50 rounded-sm" style={{ borderColor: colors.lightTan }}>
+                  <h4 className="font-sans font-bold text-[9px] mb-1.5" style={{ color: colors.terracotta }}>Date livrare:</h4>
+                  <div className="space-y-1.5 font-sans text-[9px]" style={{ color: colors.dark }}>
+                    <p className="flex">Nume: <span className="border-b border-gray-400 flex-1 ml-1"></span></p>
+                    <p className="flex">Adresă: <span className="border-b border-gray-400 flex-1 ml-1"></span></p>
+                    <p className="flex">Tel: <span className="border-b border-gray-400 flex-1 ml-1"></span></p>
+                  </div>
+               </div>
+               
+               <div className="flex-[0.7] border p-2 relative bg-white/50 rounded-sm flex flex-col justify-center" style={{ borderColor: colors.lightTan }}>
+                  <h4 className="font-sans font-bold text-[9px] mb-1" style={{ color: colors.terracotta }}>Expediere:</h4>
+                  <p className="font-sans font-bold text-[9px] leading-tight" style={{ color: colors.dark }}>WorldBox SRL</p>
+                  <p className="font-sans text-[8px] leading-tight mt-0.5" style={{ color: colors.dark }}>Str. Călărași Nr. 45<br/>Sector 2, București</p>
+                  <div className="absolute top-2 right-2 w-5 h-5 border flex items-center justify-center font-sans font-bold text-[8px]" style={{ borderColor: colors.deepGreen, color: colors.deepGreen }}>CR</div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </>
+    ) : (
+      <>
+        {/* Verso Talon A5 Landscape */}
+        <WatercolorBlob color={colors.dustyRose} top="80%" left="20%" width="12rem" height="12rem" opacity={0.1} />
+        <WatercolorBlob color={colors.sage} top="20%" left="80%" width="12rem" height="12rem" opacity={0.1} />
+
+        <div className="absolute inset-0 flex items-center justify-center p-8 text-center">
+          
+          <div className="flex items-center gap-8 text-left w-full max-w-lg">
+            <div className="flex-1 border-r pr-8" style={{ borderColor: colors.lightTan }}>
+              <div className="flex items-center gap-3 mb-4">
+                 <StampLogo size="4rem" />
+                 <div>
+                   <h2 className="font-serif font-bold text-2xl leading-none" style={{ color: colors.dark }}>WORLD</h2>
+                   <h2 className="font-serif text-xl leading-none" style={{ color: colors.terracotta }}>BOX</h2>
+                 </div>
+              </div>
+              <p className="font-serif italic text-[11px] mb-4" style={{ color: colors.medium }}>"Descoperă lumea, o cutie pe lună!"</p>
+              
+              <div className="font-sans text-[9px] space-y-1" style={{ color: colors.medium }}>
+                 <p>București, România</p>
+                 <p>hello@worldbox.ro</p>
+                 <p>+40 745 000 123</p>
+                 <p className="font-bold mt-1" style={{ color: colors.terracotta }}>www.worldbox.ro</p>
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <h3 className="font-sans font-bold text-[11px] mb-3 border-b pb-1" style={{ color: colors.terracotta, borderColor: colors.lightTan }}>DESTINAȚII DISPONIBILE 2026</h3>
+              <div className="space-y-1.5 font-serif text-[10px]" style={{ color: colors.dark }}>
+                 <p><span className="font-bold text-[#b8860b]">Ian:</span> Japonia</p>
+                 <p><span className="font-bold text-[#b8860b]">Feb:</span> Italia</p>
+                 <p><span className="font-bold text-[#b8860b]">Mar:</span> Maroc</p>
+                 <p><span className="font-bold text-[#b8860b]">Apr:</span> Mexic</p>
+                 <p className="italic mt-2 pt-1 border-t border-dashed" style={{ borderColor: colors.lightTan }}>... și alte surprize pe parcursul anului!</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </>
+    )}
+  </div>
+);
+
+// --- Main Application UI ---
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('flyer');
+  const [flyerSide, setFlyerSide] = useState('interior');
+  const [orderSide, setOrderSide] = useState('front');
+
+  const tabs = [
+    { id: 'letter', label: '1. Scrisoare A4', icon: <FileText size={18} /> },
+    { id: 'envelope', label: '2. Plic DL', icon: <Mail size={18} /> },
+    { id: 'flyer', label: '3. Flyer Tri-fold', icon: <Map size={18} /> },
+    { id: 'order', label: '4. Talon A5 (Landscape)', icon: <ClipboardList size={18} /> },
+  ];
+
+  return (
+    <div className="min-h-screen bg-neutral-900 text-white font-sans selection:bg-[#C4673A] selection:text-white pb-20">
+      {/* Top Header */}
+      <header className="border-b border-neutral-800 bg-black px-6 py-4 flex flex-col md:flex-row items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center border-2 border-[#C4673A] text-[#C4673A] font-serif font-bold text-xs">WB</div>
+          <h1 className="font-serif text-xl">WorldBox <span className="font-sans text-sm text-neutral-400 font-normal">| Print Materials Viewer</span></h1>
+        </div>
+        
+        {/* Navigation Tabs */}
+        <div className="flex gap-2 mt-4 md:mt-0 overflow-x-auto max-w-full pb-2 md:pb-0">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap ${
+                activeTab === tab.id 
+                  ? 'bg-[#C4673A] text-white shadow-md' 
+                  : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Workspace Area */}
+      <main className="p-4 md:p-8 lg:p-12 flex justify-center">
+        
+        <div className="w-full max-w-5xl flex flex-col items-center">
+          {/* Controls Bar for multi-sided materials */}
+          {(activeTab === 'flyer' || activeTab === 'order') && (
+            <div className="mb-6 flex gap-2 bg-neutral-800 p-1.5 rounded-full shadow-lg">
+              {activeTab === 'flyer' && (
+                <>
+                  <button onClick={() => setFlyerSide('exterior')} className={`px-6 py-2 rounded-full text-sm flex items-center gap-2 transition-all ${flyerSide === 'exterior' ? 'bg-[#1C1C1C] text-white shadow' : 'text-neutral-400 hover:text-white'}`}>Față (Exterior Pliat)</button>
+                  <button onClick={() => setFlyerSide('interior')} className={`px-6 py-2 rounded-full text-sm flex items-center gap-2 transition-all ${flyerSide === 'interior' ? 'bg-[#1C1C1C] text-white shadow' : 'text-neutral-400 hover:text-white'}`}>Verso (Interior Deschis)</button>
+                </>
+              )}
+              {activeTab === 'order' && (
+                <>
+                  <button onClick={() => setOrderSide('front')} className={`px-6 py-2 rounded-full text-sm flex items-center gap-2 transition-all ${orderSide === 'front' ? 'bg-[#1C1C1C] text-white shadow' : 'text-neutral-400 hover:text-white'}`}>Față (Formular)</button>
+                  <button onClick={() => setOrderSide('back')} className={`px-6 py-2 rounded-full text-sm flex items-center gap-2 transition-all ${orderSide === 'back' ? 'bg-[#1C1C1C] text-white shadow' : 'text-neutral-400 hover:text-white'}`}>Verso (Prezentare)</button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* The Paper Canvas */}
+          <div className="w-full transition-all duration-700 ease-in-out origin-top flex justify-center">
+             {activeTab === 'letter' && (
+               <div className="w-full max-w-[700px]"><LetterA4 /></div>
+             )}
+             {activeTab === 'envelope' && (
+               <div className="w-full max-w-[600px] mt-12"><EnvelopeDL /></div>
+             )}
+             {activeTab === 'flyer' && (
+               <div className="w-full max-w-[900px]"><FlyerTrifold side={flyerSide} /></div>
+             )}
+             {activeTab === 'order' && (
+                <div className="w-full max-w-[700px] mt-8"> {/* Full width, dar limitat pentru aspect de A5 Landscape (Orizontal) */}
+                  <OrderFormA5 side={orderSide} />
+                </div>
+             )}
+          </div>
+          
+          <p className="mt-8 text-neutral-500 font-serif italic text-sm text-center">
+            Material generat conform structurii de design WorldBox.<br/>Design responsiv, scalabil proporțional conform formatelor (A4, DL, A5).
+          </p>
+        </div>
+      </main>
+    </div>
+  );
+}
